@@ -37,8 +37,10 @@ def parse_zelle(pos, tiefe = 1 , teil = '', besucht = []):
         ergebnisse.append(teil)
 
 
-def werGehtZu(pos, bisauf = (-1, -1)):
-    return [zelle for zelle in rätsel if pos in rätsel[zelle][2:] if zelle != bisauf]
+def werGehtZu(pos, bisauf):
+    # bisauf = (2, 3)
+
+    return [ze for ze in list(rätsel.keys()) if pos in rätsel[ze][2:] and ze != bisauf]
 
 def werKommtVon(pos):
     return rätsel[pos][2:]
@@ -52,20 +54,26 @@ def doku(von):
 def xGehtZu(von, nach):
     doku(von)
     x = rätsel[von][:2]
-    ziele = löscheTupelAusListe(rätsel[von][2:], von)
+    ziele = löscheTupelAusListe(rätsel[von][2:], nach)
     x.append(nach)
     rätsel[von] = x
     doku(von)
 
     for ohne in werGehtZu(nach, von):
+        #print("    ", ohne, rätsel[ohne])
         löscheZiel(ohne, nach)
-        print("    ", ohne, rätsel[ohne])
+        #print("    ", ohne, rätsel[ohne])
+    löscheZiel(nach, von)
     doku(von)
-    q = werGehtZu(von, nach)
-    for ohne in q:
-        löscheZiel(ohne, von)
-        print("   -", ohne, rätsel[ohne])
+
+    if ziele.__len__() == 1:
+        x = rätsel[ziele[0]][:2]
+        x.append(von)
+        rätsel[ziele[0]] = x
+        doku(ziele[0])
+
     doku(von)
+
 
 def wer_hat_wieviel_ziele():
     ziele0 = []
@@ -104,12 +112,12 @@ if __name__ == '__main__':
     parse_zelle(list(rätsel.keys())[0],1)
     print(ergebnisse)
 
-    # xGehtZu((0, 0), (1, 2))
+    xGehtZu((0, 0), (1, 2))
     #print(werGehtZu((0, 0)))
     # print(0,0)
     #z0, z1, z2, z3, z4 = wer_hat_wieviel_ziele()
     #print(f'keine Ziele {z0}\n  1 Ziel {z1}\n    2 Ziele {z2}\n     3 Ziele {z3}\n der  Rest {z4}')
-    xGehtZu((0, 0), (1, 2))
+    #xGehtZu((0, 0), (1, 2))
     #z0, z1, z2, z3, z4 = wer_hat_wieviel_ziele()
     #print(f'keine Ziele {z0}\n  1 Ziel {z1}\n    2 Ziele {z2}\n    3 Ziele {z3}\n   der Rest {z4}')
     #print(werGehtZu((0, 0)))
