@@ -111,10 +111,8 @@ def zeichne_brett(board):
   br = hö = raster - rand
   for sp, ze in board:
     x, y = sp*raster+rand, ze*raster+rand
-    if aktiveZelle == (sp, ze):
-        rahmen = (255, 50, 50)
-    else:
-        rahmen = (255, 255, 255)
+    a, rahmen = (1, (255, 50, 50)) if aktiveZelle == (sp, ze) else (2, (255, 255, 255))
+
     pg.draw.rect(screen, "lightblue",(x, y, br, hö))
     pg.draw.rect(screen, rahmen, (x, y, br, hö), 2)
     if board[(ze,sp)][0] == '': continue
@@ -158,9 +156,9 @@ if __name__ == '__main__':
     ergebnisse = []
 
     pg.init()
-    raster = 120
-    rand = 0  # raster // 8
-    screen = pg.display.set_mode((raster * zeilen + rand, raster * spalten + rand))
+    raster = 100
+    rand = 2  # raster // 8
+    screen = pg.display.set_mode((raster * zeilen + rand + 400, raster * spalten + rand + 200))
     pg.display.set_caption("Rösselsprung Texträtsel")
     weitermachen = True
     clock = pg.time.Clock()
@@ -175,7 +173,11 @@ if __name__ == '__main__':
             if ereignis.type == pg.KEYDOWN and ereignis.key in richtungen:
                 aktiveZelleVerschieben(ereignis.key)
                 print(aktiveZelle)
-        # screen.fill('#EEEEEE')
+            elif ereignis.type == pg.MOUSEBUTTONDOWN:
+                (x1, y1) = pg.mouse.get_pos()
+                aktiveZelle = (x1 // raster, y1 // raster)
+                print(x1 // raster, y1 // raster)
+        screen.fill((180,180,190))
         zeichne_brett(rätsel)
 
         pg.display.flip()
