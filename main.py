@@ -2,9 +2,6 @@
 import pygame as pg
 
 
-spalten = zeilen = 0
-rätsel = {}
-sprungmatrix = [(-2,-1), (-2,1), (-1,2), (1,2),(2,1), (2,-1), (-1,-2), (1,-2)]
 richtungen = {pg.K_DOWN: (0, 1), pg.K_UP: (0, -1), pg.K_LEFT: (-1, 0), pg.K_RIGHT: (1, 0)}
 
 class cZelle():
