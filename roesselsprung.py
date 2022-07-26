@@ -3,7 +3,9 @@ import pygame as pg
 
 spalten = zeilen = 0
 sprungmatrix = [(-2,-1), (-2,1), (-1,2), (1,2),(2,1), (2,-1), (-1,-2), (1,-2)]
+richtungen = {pg.K_DOWN: (0, 1), pg.K_UP: (0, -1), pg.K_LEFT: (-1, 0), pg.K_RIGHT: (1, 0)}
 aktiveZelle = (0, 0)
+protokoll = []
 
 class cRätsel():
 
@@ -74,6 +76,9 @@ class cRätsel():
 
 
     def setze_ziel(self, von_zelle, zu_zelle):
+        global  aktiveZelle
+        protokoll.append((von_zelle, zu_zelle))
+        print(protokoll)
         """  setzt eindeutiges Ziel, liefert nicht genutzte mögliche Ziele  """
         restziele = self.matrix[von_zelle].mein_ziel(zu_zelle)
         """  die eindeutige Zelle darf nicht zurück springen  """
@@ -83,9 +88,10 @@ class cRätsel():
             self.matrix[zelle].loesche_ziel(zu_zelle)
         """ wenn nur noch eine Zielzelle nicht genutzt wurde
             diese dann als Start für Sprung zur von_zelle setzen """
-        if restziele.__len__() == 1 and restziele != self.matrix[restziele[0]].ziele:
+        if restziele and restziele.__len__() == 1 and restziele != self.matrix[restziele[0]].ziele:
             print(restziele, self.matrix[restziele[0]].ziele)
             self.setze_ziel(restziele[0], von_zelle)
+        aktiveZelle = zu_zelle
 
     def calc_zeichnen(self):
         br = self.rasterX - self.rand
@@ -97,11 +103,20 @@ class cRätsel():
             x, y = sp * self.rasterX + self.rand, ze * self.rasterY + self.rand
             zelle.zeichenrechteck = (x, y, br, hö)
             if az.pos == zelle.pos:
-                zelle.rahmenfarbe = (10, 250, 10)
+                zelle.rahmenfarbe = (250, 50, 10)
             elif zelle.pos in aziele:
                 zelle.rahmenfarbe  = (10, 50, 50)
             else:
                 zelle.rahmenfarbe = (200, 200, 200)
+            anzahl_ziele = zelle.ziele.__len__()
+            if anzahl_ziele == 1:
+                zelle.hintergrundfarbe = (50, 250, 50)
+            elif anzahl_ziele == 2:
+                zelle.hintergrundfarbe = (50, 250, 250)
+            elif anzahl_ziele == 3:
+                zelle.hintergrundfarbe = (250, 250, 50)
+            else:
+                zelle.hintergrundfarbe = (250, 250, 250)
 
 
 
@@ -172,11 +187,6 @@ if __name__ == '__main__':
     test = cRätsel('roesselsprung-015.bsp')
     # print(test)
     zelle = test.matrix[(3, 4)]
-    """    az = test.matrix[(0, 0)]
-    test.setze_ziel((1, 2), (0, 0))
-    test.matrix[(1, 2)].toggle_space()
-    test.matrix[(0, 0)].toggle_space()
-    """
     pg.init()
     screen = pg.display.set_mode(test.screen_rect)
     pg.display.set_caption("Rösselsprung Texträtsel")
@@ -189,7 +199,9 @@ if __name__ == '__main__':
         for ereignis in pg.event.get():
             if ereignis.type == pg.QUIT:
                 weitermachen = False
-            elif ereignis.type == pg.KEYDOWN and ereignis.key in richtungen:
+            elif ereignis.type == pg.KEYDOWN: # and ereignis.key in richtungen:
+                if ereignis.key == pg.K_n:
+                    test.original_sprungliste()
                 #aktiveZelleVerschieben(ereignis.key)
                 #print(aktiveZelle)
                 #print(zellentexte(aktiveZelle))
@@ -197,32 +209,34 @@ if __name__ == '__main__':
             elif ereignis.type == pg.MOUSEBUTTONDOWN:
                 (x1, y1) = pg.mouse.get_pos()
                 b1, b2, b3 = pg.mouse.get_pressed()
-                print(b1, b2, b3)
+                # print(b1, b2, b3)
                 sp, ze = x1 // test.rasterX, y1 // test.rasterY
                 if (sp, ze) in test.matrix:
-                    print(sp, ze, ' im Rätsel')
+                    # print(sp, ze, ' im Rätsel')
                     if test.matrix[(sp, ze)].text == '*':
-                        print('Leerzelle')
+                        # print('Leerzelle')
+                        pass
                     elif (sp, ze) == aktiveZelle:
                         if b2:
-                            cz = cZelle(aktiveZelle)
-                            cz.toggle_space()
-                        print('aktive Zelle')
+                            test.matrix[aktiveZelle].toggle_space()
+                            # print('aktive Zelle toggle_space')
                     # andere Zelle
                     elif b1:
                         aktiveZelle = (sp, ze)
-                        print(f'linke Maustaste auf {(sp, ze)} gedrückt!')
+                        # print(f'linke Maustaste auf {(sp, ze)} gedrückt!')
                     elif b3:
-                        print(f'rechte Maustaste auf {(sp, ze)} gedrückt!')
+                        # print(f'rechte Maustaste auf {(sp, ze)} gedrückt!')
                         # testen ob diese pos in den Zielen der aktiven Zelle ist
                         ziele = test.matrix[aktiveZelle].ziele
                         if (sp, ze) in ziele:
-                            print('ist drin - setze das als einziges Ziel')
+                            # print('ist drin - setze das als einziges Ziel')
                             test.setze_ziel(aktiveZelle, (sp, ze))
                         else:
-                            print('ist NICHT drin')
+                            # print('ist NICHT drin')
+                            pass
                     elif b2:
-                        print(f'Mausrad auf {(sp, ze)} gedrückt!')
+                        pass
+                        # print(f'Mausrad auf {(sp, ze)} gedrückt!')
                         # (sp, ze) ist Ziel von aktiver Zelle
 
                 else:
@@ -236,17 +250,9 @@ if __name__ == '__main__':
         zeichne_brett()
 
         pg.display.flip()
+    print(protokoll)
+    print(test)
     pg.quit()
-
-
-
-
-
-
-
-
-
-
 
 
     """# print(az)
