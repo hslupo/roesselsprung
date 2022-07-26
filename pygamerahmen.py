@@ -1,3 +1,4 @@
+# https://www.raetselstunde.de/kunterbunt/roessel-sprung/roesselsprung-015.html
 import pygame as pg
 
 spalten = zeilen = 0
@@ -5,40 +6,9 @@ sprungmatrix = [(-2,-1), (-2,1), (-1,2), (1,2),(2,1), (2,-1), (-1,-2), (1,-2)]
 richtungen = {pg.K_DOWN: (0, 1), pg.K_UP: (0, -1), pg.K_LEFT: (-1, 0), pg.K_RIGHT: (1, 0)}
 
 
-
-def grunddaten() :
-    get_bin = lambda x, n: format(x, 'b').zfill(n)
-    print(get_bin(2 ** 11 - 1, 15))
-    di = {}
-    for i in range(2**10):
-        s = get_bin(i, 10)
-        v = [x for x in s.split('0') if x != '']
-        w = ""
-        for x in v:
-            w += str(len(x)) + ' '
-        w = w.strip()
-        if w in di:
-            di[w].append(i)
-        else:
-            di[w] = [i]
-
-        print(i, s, v, w)
-    for k in di:
-        w = 2**10 - 1
-        for u in di[k]:
-
-            w = w & u
-        di[k].append(w)
-
-    print(di)
-    print(di.keys())
-    for x in di['3 4']:
-        print(get_bin(x, 11))
-
-
 class cDaten():
 
-    def __init__(self, datei, raster=40, rand=0):
+    def __init__(self, datei, raster=100, rand=0):
         """
         :param datei: Dateiname incl. eventuell notwendigem Pfad
         ließt die Datei ein und erstellt daraus ein Dict für Zellenobjekte
@@ -50,24 +20,13 @@ class cDaten():
         self.rand = rand
         with open(datei, encoding="utf-8") as f:
             ra = [x for x in f.read().split('\n')]
-
-            self.spaltenkopf = [z.split() for z in [str(x).strip() for x in ra[0].split(',')]]
-            self.zeilenkopf = [z.split() for z in [str(x).strip() for x in ra[1].split(',')]]
-            max = 0
-            for s in self.spaltenkopf:
-                max = s.__len__() if s.__len__() > max else max
-            self.spaltenmax = max
-            max = 0
-            for s in self.zeilenkopf:
-                max = s.__len__() if s.__len__() > max else max
-            self.zeilenmax = max
-            spalten = self.spaltenkopf.__len__()
-            zeilen = self.zeilenkopf.__len__()
+            zeilen = ra.__len__()
+            spalten = ra[0].split().__len__()
             # Koordinaten, Text-Fragmente ermitteln
-            # r = {(z, s): ra[s].split()[z] for s in range(zeilen) for z in range(spalten)}
+            r = {(z, s): ra[s].split()[z] for s in range(zeilen) for z in range(spalten)}
         # und entsprechende Objekte generieren
-        # for z in r:
-        #     self.matrix[z] = cZelle(z, r[z])
+        for z in r:
+            self.matrix[z] = cZelle(z, r[z])
         # originale sprungliste in die Objekte generieren
         # self.original_sprungliste()
 
@@ -94,7 +53,7 @@ class cDaten():
     @property
     def screen_rect(self):
         # raster * zeilen + rand + 400, raster * spalten + rand + 200)
-        return self.rasterX * (spalten + self.spaltenmax) + self.rand + 100, self.rasterY * (zeilen + self.zeilenmax) + self.rand + 50
+        return self.rasterX * spalten + self.rand + 100, self.rasterY * zeilen + self.rand + 50
 
     def __str__(self):
         t = f"\nRätsel: Rösselsprung\nSpalten: {spalten}\tZeilen: {zeilen}\n"
@@ -157,7 +116,7 @@ def zeichne_text(text, pos, farbe):
 
 
 if __name__ == '__main__':
-    spiel = cDaten('nono.bsp')
+    spiel = cDaten('roesselsprung-015.bsp')
     pg.init()
     screen = pg.display.set_mode(spiel.screen_rect)
     pg.display.set_caption("Rösselsprung Texträtsel")
