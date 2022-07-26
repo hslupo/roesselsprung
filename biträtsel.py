@@ -15,7 +15,7 @@ for i in range(2**10):
 
     print(i, s, v, w)
 for k in di:
-    w = 2**11 - 1
+    w = 2**10 - 1
     for u in di[k]:
 
         w = w & u
@@ -24,5 +24,5 @@ for k in di:
 print(di)
 print(di.keys())
 for x in di['3 4']:
-    print(get_bin(x, 14))
+    print(get_bin(x, 11))
 
