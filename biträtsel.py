@@ -63,13 +63,6 @@ class cDaten():
             self.zeilenmax = max
             spalten = self.spaltenkopf.__len__()
             zeilen = self.zeilenkopf.__len__()
-            # Koordinaten, Text-Fragmente ermitteln
-            # r = {(z, s): ra[s].split()[z] for s in range(zeilen) for z in range(spalten)}
-        # und entsprechende Objekte generieren
-        # for z in r:
-        #     self.matrix[z] = cZelle(z, r[z])
-        # originale sprungliste in die Objekte generieren
-        # self.original_sprungliste()
 
     @property
     def rasterX(self):
@@ -92,9 +85,17 @@ class cDaten():
             self._rasterX, self._rasterY = wert
 
     @property
-    def screen_rect(self):
+    def screen_size(self):
         # raster * zeilen + rand + 400, raster * spalten + rand + 200)
-        return self.rasterX * (spalten + self.spaltenmax) + self.rand + 100, self.rasterY * (zeilen + self.zeilenmax) + self.rand + 50
+        return self.rasterX * (spalten + self.spaltenmax) + self.rand + 100, \
+               self.rasterY * (zeilen + self.zeilenmax) + self.rand + 50
+
+    @property
+    def matrix_rect(self):
+        ssx, ssy = self.screen_size
+        mrx = self.rasterX * self.spaltenmax + self.rand
+        mry = self.rasterY * self.zeilenmax + self.rand
+        return mrx, mry, ssx - mrx, ssy - mry
 
     def __str__(self):
         t = f"\nRätsel: Rösselsprung\nSpalten: {spalten}\tZeilen: {zeilen}\n"
@@ -139,6 +140,7 @@ class cZelle():
 def zeichne_spiel():
     # Matrix des Rätsels zeichnen
     # spiel.calc_zeichnen()
+    pg.draw.rect(screen, 'black', spiel.matrix_rect, 1)
     for zelle in spiel.matrix.values():
         pg.draw.rect(screen, zelle.hintergrundfarbe, zelle.zeichenrechteck)
         pg.draw.rect(screen, zelle.rahmenfarbe, zelle.zeichenrechteck, 3)
@@ -159,8 +161,9 @@ def zeichne_text(text, pos, farbe):
 if __name__ == '__main__':
     spiel = cDaten('nono.bsp')
     pg.init()
-    screen = pg.display.set_mode(spiel.screen_rect)
-    pg.display.set_caption("Rösselsprung Texträtsel")
+    screen = pg.display.set_mode(spiel.screen_size)
+    pg.display.set_caption("Nanorätsel")
+
     weitermachen = True
     clock = pg.time.Clock()
     aktiveZelle = (0, 0)
