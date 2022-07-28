@@ -1,7 +1,7 @@
 # https://www.raetselstunde.de/kunterbunt/roessel-sprung/roesselsprung-015.html
 import pygame as pg
 
-spalten = zeilen = 0
+spalten = zeilen_zahl = 0
 sprungmatrix = [(-2,-1), (-2,1), (-1,2), (1,2),(2,1), (2,-1), (-1,-2), (1,-2)]
 richtungen = {pg.K_DOWN: (0, 1), pg.K_UP: (0, -1), pg.K_LEFT: (-1, 0), pg.K_RIGHT: (1, 0)}
 
@@ -13,7 +13,7 @@ class cDaten():
         :param datei: Dateiname incl. eventuell notwendigem Pfad
         ließt die Datei ein und erstellt daraus ein Dict für Zellenobjekte
         """
-        global spalten, zeilen
+        global spalten, zeilen_zahl
         r = {}
         self.matrix = {}
         self.raster = raster
@@ -53,10 +53,10 @@ class cDaten():
     @property
     def screen_rect(self):
         # raster * zeilen + rand + 400, raster * spalten + rand + 200)
-        return self.rasterX * spalten + self.rand + 100, self.rasterY * zeilen + self.rand + 50
+        return self.rasterX * spalten + self.rand + 100, self.rasterY * zeilen_zahl + self.rand + 50
 
     def __str__(self):
-        t = f"\nRätsel: Rösselsprung\nSpalten: {spalten}\tZeilen: {zeilen}\n"
+        t = f"\nRätsel: Rösselsprung\nSpalten: {spalten}\tZeilen: {zeilen_zahl}\n"
         for zelle in self.matrix.values():
             t += str(zelle.__str__()).replace('\n','\t mögliche Ziele - ') + '\n'
         return t

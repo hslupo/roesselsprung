@@ -65,17 +65,17 @@ farben = {0: '#CDC0B4', 2: '#EEE4DA', 4: '#EDE0C8', 8: '#EDE0C8', 16: '#F59563',
           32: '#F67C60', 64: '#F65E3B', 128: '#EDCF73', 256: '#EDCC62',
           512: '#EDC850', 1024: '#EDC850', 2048: '#EDC22D', 4096: '#000000', 8192: '#000000'}
 
-zeilen = 4
+zeilen_zahl = 4
 spalten = 4
 
-brett = {(x, y): 0 for x in range(zeilen) for y in range(spalten)}
+brett = {(x, y): 0 for x in range(zeilen_zahl) for y in range(spalten)}
 score, spielstatus = 0, True
 setze_neue_2(brett)
 
 pg.init()
 raster = 100
 rand = 0  #raster // 8
-screen = pg.display.set_mode((raster*zeilen+rand, raster*spalten+rand))
+screen = pg.display.set_mode((raster * zeilen_zahl + rand, raster * spalten + rand))
 weitermachen = True
 clock = pg.time.Clock()
 

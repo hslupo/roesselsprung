@@ -1,20 +1,19 @@
 import pygame as pg
 
-spalten = zeilen = 0
-# sprungmatrix = [(-2,-1), (-2,1), (-1,2), (1,2),(2,1), (2,-1), (-1,-2), (1,-2)]
+spalten_zahl = zeilen_zahl = 0
 richtungen = {pg.K_DOWN: (0, 1), pg.K_UP: (0, -1), pg.K_LEFT: (-1, 0), pg.K_RIGHT: (1, 0)}
 
+get_bin = lambda x, n: format(x, 'b').zfill(n)
 
-
-def grunddaten() :
-    get_bin = lambda x, n: format(x, 'b').zfill(n)
+def grunddaten(bits = 10) :
+    # get_bin = lambda x, n: format(x, 'b').zfill(n)
     # print(get_bin(2 ** 11 - 1, 15))
     di = {}
-    for i in range(2**10):
-        s = get_bin(i, 10)
+    for i in range(2**bits):
+        s = get_bin(i, bits)
         v = [x for x in s.split('0') if x != '']
         w = ""
-        for x in v:
+        for x in v:      # BitBlöcke erstellen
             w += str(len(x)) + ' '
         w = w.strip()
         if w in di:
@@ -22,18 +21,9 @@ def grunddaten() :
         else:
             di[w] = [i]
 
-        print(i, s, v, w)
-    for k in di:
-        w = 2**10 - 1
-        for u in di[k]:
+        # print(i, s, v, w)
+    return di
 
-            w = w & u
-        di[k].append(w)
-
-    print(di)
-    print(di.keys())
-    for x in di['3 4']:
-        print(get_bin(x, 11))
 
 def max_anzahl_einträge(liste):
     max = 0
@@ -50,13 +40,16 @@ class cDaten():
         :param datei: Dateiname incl. eventuell notwendigem Pfad
         ließt die Datei ein und erstellt daraus ein Dict für Zellenobjekte
         """
-        global spalten, zeilen
+        global spalten_zahl, zeilen_zahl
         r = {}
         self.matrix = {}
         self.spaltenkopf_matrix = {}
         self.zeilenkopf_matrix = {}
+        self.spalten = {}
+        self.zeilen = {}
         self.raster = raster  # x/y Dimension der Zellen
         self.rand = rand      # ohne diesen Rand
+
         with open(datei, encoding="utf-8") as f:
             rs, rz = [x for x in f.read().split('\n')]
 
@@ -67,32 +60,34 @@ class cDaten():
         self.spaltenmax = max_anzahl_einträge(self.spaltenkopf)
 
         self.zeilenmax = max_anzahl_einträge(self.zeilenkopf)
-        spalten = self.spaltenkopf.__len__()
-        zeilen = self.zeilenkopf.__len__()
+        spalten_zahl = self.spaltenkopf.__len__()
+        zeilen_zahl = self.zeilenkopf.__len__()
         self.baue_kopf_matrix()
-        for ze in range(zeilen):
-            for sp in range(spalten):
+        # und die eigentliche Matrix
+        for ze in range(zeilen_zahl):
+            for sp in range(spalten_zahl):
                  r = (self.ZeiKoB + sp * self.rasterX, self.SpaKoH + ze * self.rasterY,
                       self.rasterX, self.rasterY)
-                 self.matrix[sp, ze] = cZelle((sp, ze), False, r)
+                 self.matrix[sp, ze] = cZelle((sp, ze), '0', r)
+
 
     def baue_kopf_matrix(self):
         # Spaltenkopf
-        for sp in range(spalten):
+        for sp in range(spalten_zahl):
             spl = self.spaltenkopf[sp].split()
             while spl.__len__() < self.spaltenmax:
                 spl.insert(0, '')
             for ze in range(self.spaltenmax):
                 self.spaltenkopf_matrix[sp, ze] = spl[ze]
-                print(sp, ze, spl[ze], spl)
+                # print(sp, ze, spl[ze], spl)
         # Zeilenkopf
-        for sp in range(spalten):
+        for sp in range(spalten_zahl):
             spl = self.zeilenkopf[sp].split()
             while spl.__len__() < self.zeilenmax:
                 spl.insert(0, '')
             for ze in range(self.zeilenmax):
                 self.zeilenkopf_matrix[sp, ze] = spl[ze]
-                print(sp, ze, spl[ze], spl)
+                # print(sp, ze, spl[ze], spl)
         pass
 
 
@@ -124,7 +119,7 @@ class cDaten():
 
     @property
     def SpaKoB(self):
-        return spalten * self.rasterX
+        return spalten_zahl * self.rasterX
 
     @property
     def ZeiKoB(self):
@@ -132,7 +127,7 @@ class cDaten():
 
     @property
     def ZeiKoH(self):
-        return zeilen * self.rasterY
+        return zeilen_zahl * self.rasterY
 
     @property
     def SpaKo0Pos(self):
@@ -165,15 +160,38 @@ class cDaten():
         return *self.SpaKo0Pos, self.SpaKoB, self.SpaKoH
 
     def __str__(self):
-        t = f"\nRätsel: Nano\nSpalten: {spalten}\tZeilen: {zeilen}\n"
+        t = f"\nRätsel: Nano\nSpalten: {spalten_zahl}\tZeilen: {zeilen_zahl}\n"
         for zelle in self.matrix.values():
             t += str(zelle.__str__()).replace('\n','\t mögliche Ziele - ') + '\n'
         return t
 
 
+class cZeileSpalte():
+
+    def __init__(self, nr, orientierung):
+        self.nr = nr
+        self.ori = orientierung
+        self.vorgabe = spiel.zeilenkopf[nr] if orientierung == 'h' else spiel.spaltenkopf[nr]
+        self.möglichkeiten = vorgaben[self.vorgabe]
+
+    @property
+    def möglich(self):
+        bits = zeilen_zahl if self.ori == 'h' else spalten_zahl
+        rest = 2**bits - 1
+        for sp in self.möglichkeiten:
+            rest &= sp
+        return rest
+
+    def __str__(self):
+        bez = 'Zeile' if self.ori == 'h' else 'Spalte'
+        bits = zeilen_zahl if self.ori == 'h' else spalten_zahl
+        return f'{bez}: {self.nr} mit den Vorgaben {self.vorgabe}\n' \
+               f'\t Möglichkeiten: {self.möglichkeiten}\n' \
+               f'\t möglich {self.möglich} = {get_bin(self.möglich, bits)}'
+
 
 class cZelle():
-
+    """"  """
     def __init__(self, pos, inhalt, z_rect):
         self.pos = pos
         sp, ze = pos
@@ -181,6 +199,7 @@ class cZelle():
         # RGB-Farben für
         self.hintergrundfarbe = (250, 250, 250)
         self.rahmenfarbe = (0, 0, 0)
+        self._inhalt = '0'
 
     def __str__(self):
         return f"\t{self.pos}: {self.hintergrundfarbe}"
@@ -191,11 +210,11 @@ class cZelle():
 
     @inhalt.setter
     def inhalt(self, neu):
-        _inhalt = neu
-        self.hintergrundfarbe = (0, 0, 0) if neu else (250, 250, 250)
+        self._inhalt = neu
+        self.hintergrundfarbe = (0, 0, 0) if neu == '1' else (250, 250, 250)
 
 
-def calc_pos(pos):
+def calc_pos_x(pos):
     sp, ze = pos
     startsp, startze, b, h = spiel.matrix_rect
     return (sp * spiel.rasterX + spiel.rand + startsp, ze * spiel.rasterY + spiel.rand,
@@ -215,7 +234,7 @@ def zeichne_spiel():
     pg.draw.rect(screen, 'red', spiel.zeilenkopf_rect, 1)
     pg.draw.rect(screen, 'blue', spiel.spaltenkopf_rect, 1)
     for zelle in spiel.spaltenkopf_matrix:
-        pos = calc_pos(zelle)
+        pos = calc_pos_x(zelle)
         pg.draw.rect(screen, 'black',  pos, 1)
         if spiel.spaltenkopf_matrix[zelle]:
             zeichne_text(spiel.spaltenkopf_matrix[zelle], pos, 'black')
@@ -240,19 +259,41 @@ def zeichne_text(text, pos, farbe):
     t_rect = t.get_rect(center=mitte)
     screen.blit(t, t_rect)
 
+def zeilen_info():
+    for nr in range(spalten_zahl):
+        print(spiel.spalten[nr])
+        ist = ''
+        for ze in range(zeilen_zahl):
+            ist += spiel.matrix[nr, ze].inhalt
+        print('Ist  \t', ist, int(ist, 2))
+        soll = int(ist, 2) | spiel.spalten[nr].möglich
+        print('Soll \t', get_bin(soll, 10), soll)
+        for ze in range(zeilen_zahl):
+            spiel.matrix[nr, ze].inhalt = get_bin(soll, 10)[ze]
+
+
+
 
 if __name__ == '__main__':
     spiel = cDaten('nono.bsp')
+    vorgaben = grunddaten(zeilen_zahl)
+    for sp in range(spalten_zahl):
+        spiel.spalten[sp] = cZeileSpalte(sp, 'v')
+    for ze in range(zeilen_zahl):
+        spiel.zeilen[ze] = cZeileSpalte(ze, 'h')
+    # spiel.matrix[0, 3].inhalt = '1'  # Beispiel
+    zeilen_info()
     pg.init()
     screen = pg.display.set_mode(spiel.screen_size)
     pg.display.set_caption("Nanorätsel")
-    # zeichne_spalten_matrix()
     print(spiel)
+    # print(vorgaben)
 
     weitermachen = True
     clock = pg.time.Clock()
     aktiveZelle = (0, 0)
-    spiel.matrix[0, 3].inhalt = True
+    # spiel.matrix[0, 3].inhalt = '1'  # Beispiel
+    # spiel.matrix[5, 4].inhalt = '1'  # Beispiel
     while weitermachen:
         clock.tick(40)
         for ereignis in pg.event.get():
