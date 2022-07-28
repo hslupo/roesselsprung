@@ -8,7 +8,7 @@ richtungen = {pg.K_DOWN: (0, 1), pg.K_UP: (0, -1), pg.K_LEFT: (-1, 0), pg.K_RIGH
 
 def grunddaten() :
     get_bin = lambda x, n: format(x, 'b').zfill(n)
-    print(get_bin(2 ** 11 - 1, 15))
+    # print(get_bin(2 ** 11 - 1, 15))
     di = {}
     for i in range(2**10):
         s = get_bin(i, 10)
@@ -38,7 +38,7 @@ def grunddaten() :
 def max_anzahl_einträge(liste):
     max = 0
     for s in liste:
-        max = s.__len__() if s.__len__() > max else max
+        max = s.split().__len__() if s.split().__len__() > max else max
     return max
 
 
@@ -53,19 +53,32 @@ class cDaten():
         global spalten, zeilen
         r = {}
         self.matrix = {}
+        self.spaltenkopf_matrix = {}
         self.raster = raster  # x/y Dimension der Zellen
         self.rand = rand      # ohne diesen Rand
         with open(datei, encoding="utf-8") as f:
             rs, rz = [x for x in f.read().split('\n')]
 
         """ die Vorgaben für die Spalten und Zeilen """
-        self.spaltenkopf = [z.split() for z in [str(x).strip() for x in rs.split(',')]]
-        self.zeilenkopf = [z.split() for z in [str(x).strip() for x in rz.split(',')]]
+        self.spaltenkopf = [z for z in [str(x).strip() for x in rs.split(',')]]
+        self.zeilenkopf = [z for z in [str(x).strip() for x in rz.split(',')]]
         """ die max. Azahl von Vorgaben """
         self.spaltenmax = max_anzahl_einträge(self.spaltenkopf)
+
         self.zeilenmax = max_anzahl_einträge(self.zeilenkopf)
         spalten = self.spaltenkopf.__len__()
         zeilen = self.zeilenkopf.__len__()
+        self.baue_spaltenkopf_matrix()
+
+    def baue_spaltenkopf_matrix(self):
+        for sp in range(spalten):
+            spl = self.spaltenkopf[sp].split()
+            while spl.__len__() < self.spaltenmax:
+                spl.insert(0, '')
+            for ze in range(self.spaltenmax):
+                self.spaltenkopf_matrix[sp, ze] = spl[ze]
+                # print(sp, ze, spl[ze])
+
 
     @property
     def rasterX(self):
@@ -90,14 +103,14 @@ class cDaten():
     @property
     def screen_size(self):
         # raster * zeilen + rand + 400, raster * spalten + rand + 200)
-        return self.rasterX * (spalten + self.spaltenmax) + self.rand + 100, \
-               self.rasterY * (zeilen + self.zeilenmax) + self.rand + 50
+        return self.rasterX * (spalten + self.spaltenmax + 1) + self.rand, \
+               self.rasterY * (zeilen + self.zeilenmax + 1) + self.rand
 
     @property
     def matrix_rect(self):
         ssx, ssy = self.screen_size
-        mrx = self.rasterX * self.spaltenmax + self.rand
-        mry = self.rasterY * self.zeilenmax + self.rand
+        mrx = self.rasterX * (self.spaltenmax + 1) + self.rand
+        mry = self.rasterY * (self.zeilenmax + 1) + self.rand
         return mrx, mry, ssx - mrx, ssy - mry
 
     @property
@@ -111,7 +124,7 @@ class cDaten():
         return mrx, 0, mx, mry - 1
 
     def __str__(self):
-        t = f"\nRätsel: Rösselsprung\nSpalten: {spalten}\tZeilen: {zeilen}\n"
+        t = f"\nRätsel: Nano\nSpalten: {spalten}\tZeilen: {zeilen}\n"
         for zelle in self.matrix.values():
             t += str(zelle.__str__()).replace('\n','\t mögliche Ziele - ') + '\n'
         return t
@@ -148,7 +161,11 @@ class cZelle():
             return False
 
 
-
+def calc_pos(pos):
+    sp, ze = pos
+    startsp, startze, b, h = spiel.matrix_rect
+    return (sp * spiel.rasterX + spiel.rand + startsp, ze * spiel.rasterY + spiel.rand,
+            spiel.rasterX, spiel.rasterY)
 
 def zeichne_spiel():
     # Matrix des Rätsels zeichnen
@@ -156,6 +173,11 @@ def zeichne_spiel():
     pg.draw.rect(screen, 'black', spiel.matrix_rect, 1)
     pg.draw.rect(screen, 'red', spiel.zeilenkopf_rect, 1)
     pg.draw.rect(screen, 'blue', spiel.spaltenkopf_rect, 1)
+    for zelle in spiel.spaltenkopf_matrix:
+        pos = calc_pos(zelle)
+        pg.draw.rect(screen, 'black',  pos, 1)
+        if spiel.spaltenkopf_matrix[zelle]:
+            zeichne_text(spiel.spaltenkopf_matrix[zelle], pos, 'black')
     for zelle in spiel.matrix.values():
         pg.draw.rect(screen, zelle.hintergrundfarbe, zelle.zeichenrechteck)
         pg.draw.rect(screen, zelle.rahmenfarbe, zelle.zeichenrechteck, 3)
@@ -165,7 +187,7 @@ def zeichne_spiel():
 
 def zeichne_text(text, pos, farbe):
     x, y, b, h = pos
-    font_size = b // 4
+    font_size = b // 3
     mitte = x + b // 2, y + h // 2
 
     t = pg.font.SysFont('Arial', font_size).render(text, False, farbe)
@@ -182,6 +204,7 @@ if __name__ == '__main__':
     screen = pg.display.set_mode(spiel.screen_size)
     pg.display.set_caption("Nanorätsel")
     zeichne_spalten_matrix()
+    print(spiel)
 
     weitermachen = True
     clock = pg.time.Clock()
