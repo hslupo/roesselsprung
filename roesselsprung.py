@@ -250,17 +250,5 @@ if __name__ == '__main__':
         zeichne_brett()
 
         pg.display.flip()
-    print(protokoll)
-    print(test)
+
     pg.quit()
-
-
-    """# print(az)
-    test.setze_ziel((1, 2), (0, 0))
-    test.rätsel[(1, 2)].toggle_space()
-    test.rätsel[(0, 0)].toggle_space()
-    print(test.rätsel[(1, 2)])
-    print(test.rätsel[(0, 0)])
-    print(test.rätsel[(2, 1)])
-    print(test)
-"""
