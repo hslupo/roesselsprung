@@ -1,4 +1,5 @@
 import pygame as pg
+from pygame.locals import *
 from time import perf_counter as pfc
 
 spalten_zahl = zeilen_zahl = 0
@@ -86,6 +87,11 @@ class cDaten():
         self.status = 0     # Schleifenzähler für Lösungen
         self.status_max = spalten_zahl + zeilen_zahl - 1
 
+    def raster_delta(self, delta):
+        self.raster = self.rasterX + delta
+        if self.rasterX < 10:
+            self.raster = 10
+
     def nächste_spalte_zeile(self):
         spze = self.spalten[self.status].löse_spalte_zeile() if self.status in range(spalten_zahl) else \
             self.zeilen[self.status - spalten_zahl].löse_spalte_zeile()
@@ -113,8 +119,6 @@ class cDaten():
             for ze in range(self.zeilenmax):
                 self.zeilenkopf_matrix[sp, ze] = spl[ze]
                 # print(sp, ze, spl[ze], spl)
-        pass
-
 
 
     @property
@@ -279,8 +283,8 @@ class cZeileSpalte():
             if m & int(ist,2) == int(ist, 2) and not(m & int(nullzellen, 2)):
                 i &= get_invert(m)
                 n.append(m)
-        i
-        print(f'\talt: {self.möglichkeiten} \n\tneu: {n}\n\toder\t{i} - {get_bin(i, 10)} - {get_bin(get_invert(i),10)}')
+        # i
+        # print(f'\talt: {self.möglichkeiten} \n\tneu: {n}\n\toder\t{i} - {get_bin(i, 10)} - {get_bin(get_invert(i),10)}')
         self.möglichkeiten = n
         soll = int(ist, 2) | self.möglich
         i |= int(nullzellen, 2)
@@ -304,7 +308,7 @@ class cZelle():
     def __init__(self, pos, inhalt, z_rect):
         self.pos = pos
         sp, ze = pos
-        self.zeichenrechteck = z_rect
+        self.zeichenrechteckx = z_rect
         # RGB-Farben für
         self.hintergrundfarbe = (250, 250, 250)
         self.rahmenfarbe = (0, 0, 0)
@@ -313,6 +317,13 @@ class cZelle():
 
     def __str__(self):
         return f"\t{self.pos}: {self.hintergrundfarbe}"
+
+    @property
+    def zeichenrechteck(self):
+        sp, ze = self.pos
+        x, y, b, h = spiel.matrix_rect
+        return (x + sp * spiel.rasterX, y + ze * spiel.rasterY,
+             spiel.rasterX, spiel.rasterY)
 
     @property
     def inhalt(self):
@@ -363,11 +374,13 @@ def zeichne_spiel():
         pg.draw.rect(screen, 'black', pos, 1)
         if spiel.zeilenkopf_matrix[zelle]:
             zeichne_text(spiel.zeilenkopf_matrix[zelle], pos, 'black')
-        pass
     for zelle in spiel.matrix.values():
         # print(zelle)
         pg.draw.rect(screen, zelle.hintergrundfarbe, zelle.zeichenrechteck)
         pg.draw.rect(screen, zelle.rahmenfarbe, zelle.zeichenrechteck, 1)
+    pg.draw.rect(screen, 'yellow', spiel.matrix_rect, 1)
+    pg.draw.rect(screen, 'red', spiel.zeilenkopf_rect, 1)
+    pg.draw.rect(screen, 'blue', spiel.spaltenkopf_rect, 1)
 
 
 def zeichne_text(text, pos, farbe):
@@ -383,7 +396,7 @@ def zeichne_text(text, pos, farbe):
 
 
 if __name__ == '__main__':
-    spiel = cDaten('nono.bsp')
+    spiel = cDaten('nono3.bsp')
     start = pfc()
     vorgaben = bitblöcke(max(zeilen_zahl, spalten_zahl))
     print(f'Dauer : {pfc() - start}')
@@ -394,7 +407,7 @@ if __name__ == '__main__':
     print(f'Ausawahlmöglichkeiten: {spiel.anzahl_möglichkeiten}')
 
     pg.init()
-    screen = pg.display.set_mode(spiel.screen_size)
+    screen = pg.display.set_mode(spiel.screen_size, RESIZABLE)
     pg.display.set_caption("Nanorätsel")
     print(spiel)
     # print(vorgaben)
@@ -439,6 +452,10 @@ if __name__ == '__main__':
                 elif ereignis.key == pg.K_0:
                     spiel.spalten[0].löse_spalte_zeile()
                     spiel.zeilen[0].löse_spalte_zeile()
+                elif ereignis.key == pg.K_KP_PLUS:
+                    spiel.raster_delta(5)
+                elif ereignis.key == pg.K_KP_MINUS:
+                    spiel.raster_delta(-5)
                 print(f'Ausawahlmöglichkeiten: {spiel.anzahl_möglichkeiten}')
 
             elif ereignis.type == pg.MOUSEBUTTONDOWN:
