@@ -8,7 +8,9 @@ from IPython.display import clear_output
 class NonogramSolver:
     def __init__(self, ROWS_VALUES=[[2], [4], [6], [4, 3], [5, 4], [2, 3, 2], [3, 5], [5], [3], [2], [2], [6]],
                  COLS_VALUES=[[3], [5], [3, 2, 1], [5, 1, 1], [12], [3, 7], [4, 1, 1, 1], [3, 1, 1], [4], [2]],
-                 savepath=''):
+                 savepath='',
+                 raster= 10):
+
         self.ROWS_VALUES = ROWS_VALUES
         self.no_of_rows = len(ROWS_VALUES)
         self.rows_changed = [0] * self.no_of_rows
@@ -25,9 +27,18 @@ class NonogramSolver:
         self.savepath = savepath
         if self.savepath != '': self.n = 0
 
-        # step 1: Defining all possible solutions for every row and col
-        self.rows_possibilities = self.create_possibilities(ROWS_VALUES, self.no_of_cols)
-        self.cols_possibilities = self.create_possibilities(COLS_VALUES, self.no_of_rows)
+        # Schritt 1: Definition aller möglichen Lösungen für jede Zeile und Spalte
+        self.rows_possibilities, zkm = self.create_possibilities(ROWS_VALUES, self.no_of_cols)
+        self.cols_possibilities, skm = self.create_possibilities(COLS_VALUES, self.no_of_rows)
+
+
+
+        # Werte für die grafische Darstellung ermitteln
+        self.zeilenkopfmax: int = zkm
+        self.spaltenkopfmax: int  = skm
+        self.raster = raster
+
+        print(self.zeilenkopfmax, '\t', self.spaltenkopfmax)
 
         while not self.solved:
             # step 2: Order indici by lowest
@@ -35,7 +46,7 @@ class NonogramSolver:
             self.lowest_cols = self.select_index_not_done(self.cols_possibilities, 0)
             self.lowest = sorted(self.lowest_rows + self.lowest_cols, key=lambda element: element[1])
 
-            # step 3: Get only zeroes or only ones of lowest possibility
+            # Schritt 3: Nur Nullen oder nur Einsen der niedrigsten Möglichkeit erhalten
             for ind1, _, row_ind in self.lowest:
                 if not self.check_done(row_ind, ind1):
                     if row_ind:
@@ -66,15 +77,15 @@ class NonogramSolver:
 
     def create_possibilities(self, values, no_of_other):
         possibilities = []
-
+        max_groups = 0
         for v in values:
             groups = len(v)
+            max_groups = max(max_groups, groups)
             no_empty = no_of_other - sum(v) - groups + 1
             ones = [[1] * x for x in v]
             res = self._create_possibilities(no_empty, groups, ones)
             possibilities.append(res)
-
-        return possibilities
+        return possibilities, max_groups
 
     def _create_possibilities(self, n_empty, groups, ones):
         res_opts = []
@@ -138,8 +149,13 @@ class NonogramSolver:
             self.solved = True
 
 if __name__ == '__main__':
+    datei = 'nono3.bsp'
+    with open(datei, encoding="utf-8") as f:
+        rs, rz = [x for x in f.read().split('\n')]
 
-    a = [[4], [2, 1], [1, 1], [2], [2]]
-    b = [[4], [2, 2], [1], [1], [3]]
-
-    spiel = NonogramSolver(a, b, '.')
+    a = [[int(i) for i in s.split()] for s in rs.split(',')]
+    b = [[int(i) for i in s.split()] for s in rz.split(',')]
+    # a = [[4], [2, 1], [1, 1], [2], [2]]
+    # b = [[4], [2, 2], [1], [1], [3]]
+    print(a, '\n', b)
+    # spiel = NonogramSolver(a, b, '.')
